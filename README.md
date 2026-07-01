@@ -1,3 +1,58 @@
+# ARENA fork: `v2.18.0-numpy-fix` branch
+
+This branch is [ARENA](https://arena.education)'s patched fork of TransformerLens, based on the
+last pre-3.0 release, [`v2.18.0`](https://github.com/TransformerLensOrg/TransformerLens/releases/tag/v2.18.0).
+ARENA's course material pins `transformer_lens>=2.16.1,<3.0.0` (upgrading to the 3.x line is a
+breaking change for the exercises that isn't feasible right now), but the real `v2.18.0` release on
+PyPI can't be installed alongside `jax[cuda12]==0.10.1`, which ARENA's course also requires for a
+separate (RL/MuJoCo) chapter. This branch carries the minimal set of `pyproject.toml` patches needed
+to resolve that conflict, with no other source changes.
+
+## Patches on top of `v2.18.0`
+
+1. **Relax the `numpy<2` pin** ([`31f154d`](https://github.com/ARENA-education/TransformerLens/commit/31f154d0fa74de94cb742997a14bddd98c729527)).
+   `v2.18.0`'s `pyproject.toml` caps numpy at `<2.0` for Python <3.12, which is unsatisfiable
+   alongside `jax[cuda12]==0.10.1` (which requires `numpy>=2.0`). This cap was added upstream in
+   [`a36b57d`](https://github.com/TransformerLensOrg/TransformerLens/commit/a36b57dee1cdee7270b1e0d5ef259127b69b4dbf)
+   ("updated numpy dependency", [#943](https://github.com/TransformerLensOrg/TransformerLens/pull/943))
+   as a pure dependency-metadata change (no source files touched), and was itself removed again
+   upstream in [`60946c4`](https://github.com/TransformerLensOrg/TransformerLens/commit/60946c47ec9a0277dc105c83cc830afabf527104)
+   ("removed numpy ceiling", [#994](https://github.com/TransformerLensOrg/TransformerLens/pull/994))
+   — but only as part of the 3.0 release, never backported to 2.x. Nothing in `v2.18.0`'s source
+   actually depends on numpy<2 behavior (verified: a real `HookedTransformer` forward pass,
+   `run_with_cache`, and `utils.to_numpy` all work unmodified under numpy 2.4.6), so this patch just
+   cherry-picks the dependency relaxation onto the last 2.x release.
+
+2. **Relax the `pandas<2.1` pin** ([`7990062`](https://github.com/ARENA-education/TransformerLens/commit/7990062c2bf52d39140577eb32b1a38e210941a4)).
+   Installing numpy>=2 alone isn't sufficient: `v2.18.0`'s `pandas<2.1` cap (for Python <3.12) forces
+   a pandas build compiled against numpy 1.x's C ABI, which fails on import against numpy 2 with
+   `ValueError: numpy.dtype size changed, may indicate binary incompatibility`. This cap was added
+   upstream in [`833fb95`](https://github.com/TransformerLensOrg/TransformerLens/commit/833fb958e63c78b09f2a79893aa03c5b0ba78c58)
+   ("Isolate demo dependencies and pin orjson for CVE-2025-67221 mitigation",
+   [#1173](https://github.com/TransformerLensOrg/TransformerLens/pull/1173)) — an unrelated
+   security-patch commit that bundled in this pandas cap with no discussion or source changes.
+   This patch reverts to the unconstrained `pandas>=1.1.5` that was already in place at `v2.16.0`/
+   `v2.15.4` (before that commit), matching how the numpy pin above was relaxed. Verified working:
+   `pandas>=2.1` resolves and imports cleanly alongside numpy 2.
+
+3. **Set `version` to `2.18.0.post1`** ([`afa5b9a`](https://github.com/ARENA-education/TransformerLens/commit/afa5b9abc35a29083a045f353761174e69e81a8c)).
+   Upstream's `pyproject.toml` hardcodes `version="0.0.0"`, normally bumped by their release
+   pipeline before publishing to PyPI — a step that never runs on this git-installed fork. Left as
+   `0.0.0`, any dependent with a version-range constraint fails: e.g. ARENA also installs
+   `sae-vis==0.3.7`, which requires `transformer-lens>=2.0.0,<3.0.0`, and `0.0.0` doesn't satisfy
+   that range. Setting the version explicitly (as a `.post1` of the real `2.18.0` base) fixes
+   dependency resolution for anything checking the installed version.
+
+## Why not just upgrade to TransformerLens 3.0?
+
+Both pins above were lifted upstream, but only as part of the 3.0 release, which also brought
+[real breaking changes](https://github.com/TransformerLensOrg/TransformerLens/compare/v2.18.0...v3.0.0)
+unrelated to numpy/pandas. ARENA's exercises are pinned to the 2.x API and can't absorb that
+upgrade right now, so this branch exists to backport just the dependency fix without the breaking
+API changes.
+
+---
+
 # TransformerLens
 
 <!-- Status Icons -->
