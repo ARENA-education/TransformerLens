@@ -26,10 +26,7 @@
             {version=">=1.24", python=">=3.9,<3.12"},
             {version=">=1.26", python=">=3.12,<3.13"},
         ]
-        pandas=[
-            {version=">=1.1.5,<2.1", python=">=3.8,<3.12"},
-            {version=">=2.1", python=">=3.12,<4.0"},
-        ]
+        pandas=">=1.1.5"
         protobuf=">=3.20.0"
         python=">=3.8,<4.0"
         rich=">=12.6.0"
