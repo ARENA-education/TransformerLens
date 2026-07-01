@@ -5,8 +5,10 @@
     name="transformer-lens"
     packages=[{include="transformer_lens"}]
     readme="README.md"
-    # Version is automatically set by the pipeline on release
-    version="0.0.0"
+    # Normally set by the release pipeline (which we don't run from this git-installed
+    # fork); hardcoded here so version-range dependents (e.g. sae-vis's
+    # transformer-lens>=2.0.0,<3.0.0) resolve correctly against the real 0.0.0 default.
+    version="2.18.0.post1"
 
     [tool.poetry.scripts]
         build-docs="docs.make_docs:build_docs"
