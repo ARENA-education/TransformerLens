@@ -1,3 +1,8 @@
+> [!NOTE]
+> This section (down to the `---` divider below) was written by Claude (Anthropic), an AI
+> assistant, while investigating and fixing a dependency conflict for the ARENA course on behalf
+> of David Quarel. It is not authored by David.
+
 # ARENA fork: `v2.18.0-numpy-fix` branch
 
 This branch is [ARENA](https://arena.education)'s patched fork of TransformerLens, based on the
